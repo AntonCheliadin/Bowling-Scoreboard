@@ -1,0 +1,23 @@
+.scoreboard_frame {
+    width: 10%;
+    height: 90px;
+    float: left;
+    text-align: center;
+    border: 1px solid;
+}
+
+.knocked_down_pins {
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    height: 33%;
+}
+
+.pins {
+    float: left;
+    width: 50%;
+}
+
+.bonus_pins {
+    float: left;
+    width: 33%;
+}
