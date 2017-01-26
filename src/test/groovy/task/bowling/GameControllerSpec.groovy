@@ -1,14 +1,14 @@
 package task.bowling
 
-import grails.test.mixin.*
+import grails.test.mixin.Mock
+import grails.test.mixin.TestFor
 import spock.lang.*
 
 @TestFor(GameController)
-@Mock([Game, Frame])
+@Mock([Frame, LastFrame, Game, FrameService, LastFrameService, GameService])
 class GameControllerSpec extends Specification {
 
     void "Test the index action returns the correct model"() {
-
         when: "The index action is executed"
         controller.index()
 
@@ -100,7 +100,6 @@ class GameControllerSpec extends Specification {
         response.redirectedUrl == '/game/show/2'
     }
 
-
     void "test that the roll action processes knocked down pins correctly"() {
         when: "knocked down pins in first roll less than 10"
         request.contentType = FORM_CONTENT_TYPE
@@ -108,13 +107,17 @@ class GameControllerSpec extends Specification {
         def game = new Game().save()
         request.addParameter('knockedDownPins', "5")
         controller.roll(game)
-        def biggestFrame = game.getBiggestFrame()
+        def frame = Frame.findByGame(game)
 
-        then: "frame is created with frame number = 1 and score is empty"
-        biggestFrame.frameNumber == 1
-        biggestFrame.firstRoll == 5
-        biggestFrame.secondRoll == null
-        biggestFrame.score == null
+        then:"frame is created with frame number = 1"
+        frame.frameNumber == 1
+
+        and:"first roll is filled but second roll isn't filled"
+        frame.firstRoll == 5
+        frame.secondRoll == null
+
+        and:"score is empty"
+        frame.score == null
     }
 
 }
