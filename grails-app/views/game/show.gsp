@@ -24,7 +24,7 @@
         <div class="message" role="status">${flash.message}</div>
     </g:if>
 
-    <g:render template="playingForm" model="this.game"/>
+    <gameTag:playingForm game="${this.game}"/>
     <g:render template="scoreboard" model="this.game"/>
 
     <fieldset class="buttons">

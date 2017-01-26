@@ -27,7 +27,7 @@
     <g:if test="${flash.message}">
         <div class="message" role="status">${flash.message}</div>
     </g:if>
-%{--<f:table collection="${gameList}" />--}%
+
     <g:render template="scoreboard" collection="${gameList}" var="game"/>
 
     <div class="pagination">

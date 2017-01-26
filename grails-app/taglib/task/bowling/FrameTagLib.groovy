@@ -1,7 +1,6 @@
 package task.bowling
 
-import static task.bowling.GameController.MAX_PIN
-import static task.bowling.GameController.MIN_PIN
+import static task.bowling.Constants.*
 
 class FrameTagLib {
     static defaultEncodeAs = [taglib: 'html']
@@ -9,39 +8,28 @@ class FrameTagLib {
 
     static namespace = "frameTag"
 
-    public static final String BONUS_PINS = "bonus_pins"
-    public static final String HIT_PINS = "pins"
-
     def hitPins = { attrs, body ->
-        Integer firstRoll = attrs['firstRoll']
-        Integer secondRoll = attrs['secondRoll']
-        Integer bonusRoll = attrs['bonusRoll']
-        boolean isLastFrame = attrs['isLastFrame']
-
-        if (!isLastFrame) {
-            calculateUsuallyCase(firstRoll, secondRoll)
-        } else {
-            calculateLastFrame(firstRoll, secondRoll, bonusRoll)
-        }
+        Frame frame = attrs['frame']
+        if (frame)
+            calculateView(frame)
     }
 
-    private def calculateUsuallyCase(Integer firstRoll, Integer secondRoll) {
-        wrapDiv(HIT_PINS, calculateFirstRoll(firstRoll))
-        wrapDiv(HIT_PINS, calculateSecondRoll(firstRoll, secondRoll))
+    private def calculateView(Frame frame) {
+        wrapDiv(HIT_PINS, calculateFirstRoll(frame.firstRoll))
+        wrapDiv(HIT_PINS, calculateSecondRoll(frame.firstRoll, frame.secondRoll))
     }
 
-    private def calculateLastFrame(Integer firstRoll, Integer secondRoll, Integer bonusRoll) {
-        String cssClass = bonusRoll ? BONUS_PINS : HIT_PINS
+    private def calculateView(LastFrame frame) {
+        String cssClass = frame.bonusRoll ? BONUS_PINS : HIT_PINS
 
-        wrapDiv(cssClass, calculateFirstRoll(firstRoll))
+        wrapDiv(cssClass, calculateFirstRoll(frame.firstRoll))
 
-        if (firstRoll == MAX_PIN) {
-            wrapDiv(cssClass, calculateFirstRoll(secondRoll))
-            wrapDiv(cssClass, bonusRoll == MIN_PIN ? "-" : secondRoll == MAX_PIN && bonusRoll == MAX_PIN ? "X" :
-                    isSpare(secondRoll, bonusRoll) ? "/" : bonusRoll ?: "")
+        if (frame.getService().isStrike(frame)) {
+            wrapDiv(cssClass, calculateFirstRoll(frame.secondRoll))
+            wrapDiv(cssClass, calculateBonusRoll(frame))
         } else {
-            wrapDiv(cssClass, calculateSecondRoll(firstRoll, secondRoll))
-            wrapDiv(cssClass, calculateFirstRoll(bonusRoll))
+            wrapDiv(cssClass, calculateSecondRoll(frame.firstRoll, frame.secondRoll))
+            wrapDiv(cssClass, calculateFirstRoll(frame.bonusRoll))
         }
     }
 
@@ -49,15 +37,12 @@ class FrameTagLib {
         out << "<div class=\"" + cssClass + "\">" + value + "</div>"
     }
 
-    private def isSpare = { firstRoll, secondRoll ->
-        int fRoll = firstRoll ?: MIN_PIN
-        int sRoll = secondRoll ?: MIN_PIN
-        fRoll + sRoll == MAX_PIN && fRoll != MAX_PIN
-    }
+    private def calculateCommonRoll = { roll -> roll == MIN_PIN ? "-" : roll ?: "" }
 
-    private def calculateFirstRoll = { roll -> roll == MIN_PIN ? "-" : roll == MAX_PIN ? "X" : roll ?: "" }
+    private def calculateFirstRoll = { firstRoll -> firstRoll == MAX_PIN ? "X" : calculateCommonRoll(firstRoll)}
 
-    private def calculateSecondRoll = { firstRoll, secondRoll ->
-        secondRoll == MIN_PIN ? "-" : isSpare(firstRoll, secondRoll) ? "/" : secondRoll ?: ""
-    }
+    private def calculateSecondRoll = { firstRoll, secondRoll -> secondRoll && firstRoll + secondRoll == MAX_PIN ? "/" : calculateCommonRoll(secondRoll)}
+
+    private def calculateBonusRoll = { frame -> frame.secondRoll == MAX_PIN && frame.bonusRoll == MAX_PIN ? "X" :
+            calculateSecondRoll(frame.secondRoll, frame.bonusRoll)}
 }
