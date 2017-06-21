@@ -1,15 +1,11 @@
 package task.bowling
 
-import grails.transaction.Transactional
-
 import static org.springframework.http.HttpStatus.*
 
-@Transactional(readOnly = true)
 class GameController {
     def gameService
 
     static allowedMethods = [save: "POST", delete: "DELETE"]
-
 
     def index(Integer max) {
         params.max = Math.min(max ?: 10, 100)
@@ -20,16 +16,13 @@ class GameController {
         respond game
     }
 
-    @Transactional
     def save(Game game) {
         if (game == null) {
-            transactionStatus.setRollbackOnly()
             notFound()
             return
         }
 
         if (game.hasErrors()) {
-            transactionStatus.setRollbackOnly()
             respond game.errors, view: 'create'
             return
         }
@@ -45,11 +38,8 @@ class GameController {
         }
     }
 
-    @Transactional
     def delete(Game game) {
-
         if (game == null) {
-            transactionStatus.setRollbackOnly()
             notFound()
             return
         }
@@ -82,7 +72,7 @@ class GameController {
         }
         Integer knockedDownPins = params.int('knockedDownPins')
         def result = gameService.executeRoll(game, knockedDownPins)
-        if (result?.error){
+        if (result?.error) {
             flash.message = message(code: result.error)
         }
         redirect(action: "show", id: game.getId())
