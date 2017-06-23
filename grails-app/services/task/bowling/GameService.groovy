@@ -1,5 +1,7 @@
 package task.bowling
 
+import task.bowling.data.RollCommand
+
 import static task.bowling.Constants.FIRST_FRAME_NUMBER
 import static task.bowling.Constants.LAST_FRAME_NUMBER
 
@@ -7,12 +9,12 @@ class GameService {
 
     def frameService
 
-    def executeRoll(Game game, Integer knockedDownPins) {
-        if (isGameOver(game) || knockedDownPins == null) {
+    def executeRoll(Game game, RollCommand cmd) {
+        if (isGameOver(game)) {
             return [error: 'task.bowling.game.over.message']
         }
 
-        Frame frame = createOrUpdateBiggestFrame(game, knockedDownPins)
+        def frame = createOrUpdateBiggestFrame(game, cmd.knockedDownPins)
 
         if (!frame) {
             return [error: 'task.bowling.game.invalid.pins.message']
@@ -31,27 +33,34 @@ class GameService {
     }
 
     def getBiggestFrame(Game game) {
-        game.frames?.max { a, b -> a.frameNumber <=> b.frameNumber }
+        game.frames?.max { it.frameNumber }
     }
 
-    def createOrUpdateBiggestFrame(Game game, Integer knockedDownPins) {
+    private Frame createOrUpdateBiggestFrame(Game game, Integer knockedDownPins) {
         Frame biggestFrame = getBiggestFrame(game)
         if (!biggestFrame || biggestFrame.isNewFrameNeeded()) {
-
-            def params = [game: game, frameNumber: biggestFrame ? biggestFrame.frameNumber + 1 : FIRST_FRAME_NUMBER, firstRoll: knockedDownPins]
-
-            if (params['frameNumber'] == LAST_FRAME_NUMBER) {
-                biggestFrame = new LastFrame(params)
-            } else {
-                biggestFrame = new Frame(params)
-            }
+            createFrame(game, biggestFrame, knockedDownPins)
         } else {
-            if (biggestFrame.secondRoll == null) {
-                biggestFrame.secondRoll = knockedDownPins
-            } else {
-                biggestFrame.bonusRoll = knockedDownPins
-            }
+            updateFrame(biggestFrame, knockedDownPins)
         }
-        biggestFrame.save()
+    }
+
+    private Frame createFrame(Game game, Frame frame, Integer knockedDownPins) {
+        def params = [game: game, frameNumber: frame ? frame.frameNumber + 1 : FIRST_FRAME_NUMBER, firstRoll: knockedDownPins]
+
+        if (params['frameNumber'] == LAST_FRAME_NUMBER) {
+            new LastFrame(params).save()
+        } else {
+            new Frame(params).save()
+        }
+    }
+
+    private Frame updateFrame(Frame frame, Integer knockedDownPins) {
+        if (frame.secondRoll == null) {
+            frame.secondRoll = knockedDownPins
+        } else {
+            frame.bonusRoll = knockedDownPins
+        }
+        frame.save()
     }
 }

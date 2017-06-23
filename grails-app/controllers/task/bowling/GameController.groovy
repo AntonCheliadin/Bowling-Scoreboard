@@ -1,5 +1,7 @@
 package task.bowling
 
+import task.bowling.data.RollCommand
+
 import static org.springframework.http.HttpStatus.*
 
 class GameController {
@@ -16,7 +18,7 @@ class GameController {
         respond game
     }
 
-    def save(Game game) {
+    def create(Game game) {
         if (game == null) {
             notFound()
             return
@@ -44,7 +46,7 @@ class GameController {
             return
         }
 
-        game.delete flush: true
+        game.delete()
 
         request.withFormat {
             form multipartForm {
@@ -65,16 +67,21 @@ class GameController {
         }
     }
 
-    def roll(Game game) {
+    def roll(Game game, RollCommand cmd) {
         if (game == null) {
             notFound()
             return
         }
-        Integer knockedDownPins = params.int('knockedDownPins')
-        def result = gameService.executeRoll(game, knockedDownPins)
+        if (!cmd.validate()) {
+            flash.message = message(code: 'game.roll.invalid', args: [cmd.knockedDownPins, game.id])
+            redirect(action: "show", id: game.id)
+            return
+        }
+
+        def result = gameService.executeRoll(game, cmd)
         if (result?.error) {
             flash.message = message(code: result.error)
         }
-        redirect(action: "show", id: game.getId())
+        redirect(action: "show", id: game.id)
     }
 }
