@@ -7,8 +7,6 @@ import static org.springframework.http.HttpStatus.*
 class GameController {
     def gameService
 
-    static allowedMethods = [save: "POST", delete: "DELETE"]
-
     def index(Integer max) {
         params.max = Math.min(max ?: 10, 100)
         respond Game.list(params), model: [gameCount: Game.count()]
@@ -51,7 +49,7 @@ class GameController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.deleted.message', args: [message(code: 'game.label', default: 'Game'), game.id])
-                redirect action: "index", method: "GET"
+                redirect action: "index"
             }
             '*' { render status: NO_CONTENT }
         }
@@ -61,7 +59,7 @@ class GameController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.not.found.message', args: [message(code: 'game.label', default: 'Game'), params.id])
-                redirect action: "index", method: "GET"
+                redirect action: "index"
             }
             '*' { render status: NOT_FOUND }
         }

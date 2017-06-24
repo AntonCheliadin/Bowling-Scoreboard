@@ -8,7 +8,7 @@ import spock.lang.Specification
  * See the API for {@link grails.test.mixin.web.GroovyPageUnitTestMixin} for usage instructions
  */
 @TestFor(GameTagLib)
-@Mock([Frame, LastFrame, Game, FrameService, LastFrameService])
+@Mock([Frame, LastFrame, Game, FrameService])
 class GameTagLibSpec extends Specification {
 
     def setup() {

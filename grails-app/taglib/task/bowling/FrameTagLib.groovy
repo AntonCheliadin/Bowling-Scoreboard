@@ -3,8 +3,8 @@ package task.bowling
 import static task.bowling.Constants.*
 
 class FrameTagLib {
-//    static defaultEncodeAs = [taglib: 'html']
-//    static encodeAsForTags = [hitPins: [taglib: 'none']]
+    static defaultEncodeAs = [taglib: 'html']
+    static encodeAsForTags = [hitPins: [taglib: 'none']]
 
     static namespace = "frameTag"
 

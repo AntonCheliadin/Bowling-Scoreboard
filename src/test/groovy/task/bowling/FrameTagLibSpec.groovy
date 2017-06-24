@@ -10,7 +10,7 @@ import static task.bowling.Constants.*
  * See the API for {@link grails.test.mixin.web.GroovyPageUnitTestMixin} for usage instructions
  */
 @TestFor(FrameTagLib)
-@Mock([FrameService, LastFrameService])
+@Mock([FrameService])
 class FrameTagLibSpec extends Specification {
 
     def setup() {
