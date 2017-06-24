@@ -43,16 +43,6 @@ class FrameSpec extends Specification {
         -5        | 7          | false
     }
 
-    void "test get service"(){
-        when:"frame is instance of Frame class"
-        def game = new Game()
-        def frame = new Frame(game: game, frameNumber: 1, firstRoll: 10)
-        def service = frame.getService()
-
-        then:"service is instance of FrameService class"
-        service && service instanceof FrameService
-    }
-
     void "test score constraints"(){
         given:
         Game game = new Game()
@@ -71,5 +61,32 @@ class FrameSpec extends Specification {
          0    | true
          300  | true
          301  | false
+    }
+
+    void "test next frame"() {
+        when:
+        def game = new Game().save()
+        Frame secondFrame = new Frame(game: game, frameNumber: 2, firstRoll: 0).save()
+        Frame thirdFrame = new Frame(game: game, frameNumber: 3, firstRoll: 5).save()
+
+        then: "frame with the next frame number is returned"
+        secondFrame.nextFrame() == thirdFrame
+
+        then: "return null if frame with the next frame number is absent"
+        thirdFrame.nextFrame() == null
+    }
+
+    void "test is new frame needed"() {
+        when:
+        def frame = new Frame(frameNumber: frameNumber, firstRoll: firstRoll, secondRoll: secondRoll)
+
+        then:
+        expected == frame.isNewFrameNeeded()
+
+        where:
+        frameNumber | firstRoll | secondRoll | expected
+        1           | 10        | null       | true
+        1           | 0         | null       | false
+        1           | 4         | 6          | true
     }
 }

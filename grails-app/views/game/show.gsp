@@ -33,7 +33,7 @@
                    value="${message(code: 'default.button.delete.label', default: 'Delete')}"
                    onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');"/>
         </g:form>
-        <g:form action="save">
+        <g:form action="create">
             <g:submitButton name="create" class="save"
                             value="${message(code: 'task.bowling.button.create.label', args: [entityName])}"/>
         </g:form>

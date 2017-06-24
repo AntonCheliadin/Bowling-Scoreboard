@@ -3,13 +3,14 @@ package task.bowling
 import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
 import spock.lang.Specification
+import task.bowling.data.RollCommand
 
 /**
  * See the API for {@link grails.test.mixin.services.ServiceUnitTestMixin} for usage instructions
  */
 
 @TestFor(GameService)
-@Mock([Frame, LastFrame, Game, FrameService, LastFrameService])
+@Mock([Frame, LastFrame, Game, FrameService])
 class GameServiceSpec extends Specification {
 
     def setup() {
@@ -29,13 +30,13 @@ class GameServiceSpec extends Specification {
         def game = new Game().save()
 
         when:"value knocked down pins is invalid"
-        def result = service.executeRoll(game, 11)
+        def result = service.executeRoll(game, new RollCommand(knockedDownPins: 11))
 
         then:"error is returned"
         result.error != null
 
         when:"value knocked down pins is valid"
-        result = service.executeRoll(game, 10)
+        result = service.executeRoll(game, new RollCommand(knockedDownPins: 10))
 
         then:"error isn't returned"
         result?.error == null
@@ -43,7 +44,7 @@ class GameServiceSpec extends Specification {
         when:"game over"
         fillGame(game, 2, 9)
         new LastFrame(game: game, frameNumber: 10, firstRoll: 4, secondRoll: 5).save()
-        result = service.executeRoll(game, 5)
+        result = service.executeRoll(game, new RollCommand(knockedDownPins: 5))
 
         then:"error is returned"
         result.error != null

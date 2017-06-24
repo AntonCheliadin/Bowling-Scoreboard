@@ -1,9 +1,9 @@
 package task.bowling
 
-import static task.bowling.Constants.*
+import static task.bowling.Constants.MAX_PIN
+import static task.bowling.Constants.MIN_PIN
 
 class Frame {
-    def frameService
 
     Integer frameNumber
     Integer firstRoll
@@ -15,7 +15,7 @@ class Frame {
         frameNumber(range: 1..10)
         firstRoll(range: 0..10)
         secondRoll(range: 0..10, nullable: true, validator: { val, obj ->
-            if (obj.firstRoll == MAX_PIN ) {
+            if (obj.firstRoll == MAX_PIN) {
                 val == null
             } else {
                 obj.firstRoll + (val ?: MIN_PIN) <= MAX_PIN
@@ -29,8 +29,28 @@ class Frame {
         game indexColumn: [name: "the_game", type: Game]
     }
 
-    def getService(){
-        frameService
+    def nextFrame() {
+        Frame.findByGameAndFrameNumber(game, frameNumber + 1)
+    }
+
+    def previousFrame() {
+        Frame.findByGameAndFrameNumber(game, frameNumber - 1)
+    }
+
+    def isSpare() {
+        sumRolls() == MAX_PIN && !isStrike()
+    }
+
+    def isStrike() {
+        firstRoll == MAX_PIN
+    }
+
+    def sumRolls() {
+        firstRoll + (secondRoll ?: MIN_PIN)
+    }
+
+    def isNewFrameNeeded() {
+        secondRoll != null || isStrike()
     }
 
     @Override

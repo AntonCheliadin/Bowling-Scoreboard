@@ -16,7 +16,7 @@
         <li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
     </ul>
 </div>
-<g:form action="save">
+<g:form action="create">
     <fieldset class="buttons">
         <g:submitButton name="create" class="save"
                         value="${message(code: 'task.bowling.button.create.label', args: [entityName])}"/>

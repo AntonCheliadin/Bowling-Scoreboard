@@ -3,9 +3,10 @@ package task.bowling
 import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
 import spock.lang.*
+import task.bowling.data.RollCommand
 
 @TestFor(GameController)
-@Mock([Frame, LastFrame, Game, FrameService, LastFrameService, GameService])
+@Mock([Frame, LastFrame, Game, FrameService, GameService])
 class GameControllerSpec extends Specification {
 
     void "Test the index action returns the correct model"() {
@@ -17,13 +18,13 @@ class GameControllerSpec extends Specification {
         model.gameCount == 0
     }
 
-    void "Test the save action correctly persists an instance"() {
-        when: "The save action is executed"
+    void "Test the create action correctly persists an instance"() {
+        when: "The create action is executed"
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'POST'
         def game = new Game()
         game.validate()
-        controller.save(game)
+        controller.create(game)
 
         then: "A redirect is issued to the show action"
         response.redirectedUrl == '/game/show/1'
@@ -74,7 +75,7 @@ class GameControllerSpec extends Specification {
 
     void "test that the roll action redirect correct url"() {
         when: "The roll action is executed with a null domain"
-        controller.roll(null)
+        controller.roll(null, new RollCommand())
 
         then: "A 404 error is returned"
         response.status == 404
@@ -83,9 +84,8 @@ class GameControllerSpec extends Specification {
         response.reset()
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'POST'
-        request.setParameter('knockedDownPins', "1")
         def game = new Game().save()
-        controller.roll(game)
+        controller.roll(game, new RollCommand(knockedDownPins: 1))
 
         then: "A redirect is issued to the show action"
         response.redirectedUrl == '/game/show/1'
@@ -94,7 +94,7 @@ class GameControllerSpec extends Specification {
         when: "The roll action is executed without knocked down pins parameter"
         response.reset()
         game = new Game().save()
-        controller.roll(game)
+        controller.roll(game, new RollCommand())
 
         then: "A redirect is issued to the show action and flash.message is exist"
         response.redirectedUrl == '/game/show/2'
@@ -105,8 +105,7 @@ class GameControllerSpec extends Specification {
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'POST'
         def game = new Game().save()
-        request.addParameter('knockedDownPins', "5")
-        controller.roll(game)
+        controller.roll(game, new RollCommand(knockedDownPins: 5))
         def frame = Frame.findByGame(game)
 
         then:"frame is created with frame number = 1"

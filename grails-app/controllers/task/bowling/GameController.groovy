@@ -1,15 +1,11 @@
 package task.bowling
 
-import grails.transaction.Transactional
+import task.bowling.data.RollCommand
 
 import static org.springframework.http.HttpStatus.*
 
-@Transactional(readOnly = true)
 class GameController {
     def gameService
-
-    static allowedMethods = [save: "POST", delete: "DELETE"]
-
 
     def index(Integer max) {
         params.max = Math.min(max ?: 10, 100)
@@ -20,16 +16,13 @@ class GameController {
         respond game
     }
 
-    @Transactional
-    def save(Game game) {
+    def create(Game game) {
         if (game == null) {
-            transactionStatus.setRollbackOnly()
             notFound()
             return
         }
 
         if (game.hasErrors()) {
-            transactionStatus.setRollbackOnly()
             respond game.errors, view: 'create'
             return
         }
@@ -45,21 +38,18 @@ class GameController {
         }
     }
 
-    @Transactional
     def delete(Game game) {
-
         if (game == null) {
-            transactionStatus.setRollbackOnly()
             notFound()
             return
         }
 
-        game.delete flush: true
+        game.delete()
 
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.deleted.message', args: [message(code: 'game.label', default: 'Game'), game.id])
-                redirect action: "index", method: "GET"
+                redirect action: "index"
             }
             '*' { render status: NO_CONTENT }
         }
@@ -69,22 +59,27 @@ class GameController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.not.found.message', args: [message(code: 'game.label', default: 'Game'), params.id])
-                redirect action: "index", method: "GET"
+                redirect action: "index"
             }
             '*' { render status: NOT_FOUND }
         }
     }
 
-    def roll(Game game) {
+    def roll(Game game, RollCommand cmd) {
         if (game == null) {
             notFound()
             return
         }
-        Integer knockedDownPins = params.int('knockedDownPins')
-        def result = gameService.executeRoll(game, knockedDownPins)
-        if (result?.error){
+        if (!cmd.validate()) {
+            flash.message = message(code: 'game.roll.invalid', args: [cmd.knockedDownPins, game.id])
+            redirect(action: "show", id: game.id)
+            return
+        }
+
+        def result = gameService.executeRoll(game, cmd)
+        if (result?.error) {
             flash.message = message(code: result.error)
         }
-        redirect(action: "show", id: game.getId())
+        redirect(action: "show", id: game.id)
     }
 }

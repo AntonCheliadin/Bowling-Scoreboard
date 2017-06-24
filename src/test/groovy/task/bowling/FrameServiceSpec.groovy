@@ -9,26 +9,13 @@ import spock.lang.Specification
  */
 
 @TestFor(FrameService)
-@Mock([Frame, Game, LastFrame, LastFrameService])
+@Mock([Frame, Game, LastFrame])
 class FrameServiceSpec extends Specification {
 
     def setup() {
     }
 
     def cleanup() {
-    }
-
-    void "test next frame"() {
-        when:
-        def game = new Game().save()
-        Frame secondFrame = new Frame(game: game, frameNumber: 2, firstRoll: 0).save()
-        Frame thirdFrame = new Frame(game: game, frameNumber: 3, firstRoll: 5).save()
-
-        then: "frame with the next frame number is returned"
-        service.nextFrame(secondFrame) == thirdFrame
-
-        then: "return null if frame with the next frame number is absent"
-        service.nextFrame(thirdFrame) == null
     }
 
     void "test previous frame"() {
@@ -38,16 +25,16 @@ class FrameServiceSpec extends Specification {
         Frame secondFrame = new Frame(game: game, frameNumber: 2, firstRoll: 5).save()
 
         then: "frame with the previous frame number is returned"
-        service.previousFrame(secondFrame) == firstFrame
+        secondFrame.previousFrame() == firstFrame
 
         then: "return null if frame with the previous frame number is absent"
-        service.previousFrame(firstFrame) == null
+        firstFrame.previousFrame() == null
     }
 
     void "test spare"() {
         def frame = new Frame(frameNumber: 1, firstRoll: firstRoll, secondRoll: secondRoll)
-        expect: "Spare - the remainder of the pins left standing after the first roll are knocked down on the second roll in a frame;"
-        expected == service.isSpare(frame)
+        expect: "Spare - the remainder  the pins left standing after the first roll are knocked down on the second roll in a frame;"
+        expected == frame.isSpare()
 
         where:
         firstRoll | secondRoll | expected
@@ -60,7 +47,7 @@ class FrameServiceSpec extends Specification {
     void "test strike"() {
         def frame = new Frame(firstRoll: firstRoll, secondRoll: secondRoll)
         expect: "Strike - all ten pins have been knocked down by the first roll of the ball in a frame."
-        expected == service.isStrike(frame)
+        expected == frame.isStrike()
 
         where:
         firstRoll | secondRoll | expected
@@ -75,7 +62,7 @@ class FrameServiceSpec extends Specification {
         def frame = new Frame(firstRoll: firstRoll, secondRoll: secondRoll)
 
         then:
-        expected == service.sumRolls(frame)
+        expected == frame.sumRolls()
 
         where:
         firstRoll | secondRoll | expected
@@ -83,20 +70,6 @@ class FrameServiceSpec extends Specification {
         0         | 10         | 10
         4         | 3          | 7
         0         | 0          | 0
-    }
-
-    void "test is new frame needed"() {
-        when:
-        def frame = new Frame(frameNumber: frameNumber, firstRoll: firstRoll, secondRoll: secondRoll)
-
-        then:
-        expected == service.isNewFrameNeeded(frame)
-
-        where:
-        frameNumber | firstRoll | secondRoll | expected
-        1           | 10        | null       | true
-        1           | 0         | null       | false
-        1           | 4         | 6          | true
     }
 
     void "test fill frame score"() {
@@ -136,6 +109,45 @@ class FrameServiceSpec extends Specification {
         service.fillScore(ninthFrame)
 
         then: "score equals 10 plus next two rolls (both of them in last frame)"
-        ninthFrame.score == 127
+        ninthFrame.score == 129
+    }
+
+
+    void "test sum of rolls"() {
+        when:
+        def frame = new LastFrame(firstRoll: firstRoll, secondRoll: secondRoll, bonusRoll: bonusRoll)
+
+        then:
+        expected == frame.sumRolls()
+
+        where:
+        firstRoll | secondRoll | bonusRoll | expected
+        10        | null       | null      | 10
+        0         | 10         | null      | 10
+        4         | 3          | 7         | 14
+        0         | 0          | 0         | 0
+        10        | 10         | 10        | 30
+    }
+
+    void "test fill score for last frame"() {
+        when: "frame with number 9 has score equals 0"
+        def game = new Game().save()
+        new Frame(game: game, frameNumber: 9, firstRoll: 0, secondRoll: 0, score: 0).save()
+        def frame = new LastFrame(game: game, frameNumber: 10, firstRoll: firstRoll, secondRoll: secondRoll, bonusRoll: bonusRoll).save()
+
+        service.fillScore(frame)
+
+        then:
+        frame.score == expected
+
+        where:
+        firstRoll | secondRoll | bonusRoll | expected
+        10        | null       | null      | null
+        10        | 10         | null      | null
+        10        | 10         | 1         | 21
+        10        | 0          | 7         | 17
+        0         | 5          | null      | 5
+        6         | 4          | null      | null
+        6         | 4          | 10        | 20
     }
 }

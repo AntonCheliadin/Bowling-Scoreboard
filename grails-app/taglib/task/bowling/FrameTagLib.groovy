@@ -24,7 +24,7 @@ class FrameTagLib {
 
         wrapDiv(cssClass, calculateFirstRoll(frame.firstRoll))
 
-        if (frame.getService().isStrike(frame)) {
+        if (frame.isStrike()) {
             wrapDiv(cssClass, calculateFirstRoll(frame.secondRoll))
             wrapDiv(cssClass, calculateBonusRoll(frame))
         } else {

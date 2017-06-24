@@ -8,7 +8,7 @@ import spock.lang.Specification
  * See the API for {@link grails.test.mixin.domain.DomainClassUnitTestMixin} for usage instructions
  */
 @TestFor(LastFrame)
-@Mock([Frame, Game, LastFrameService])
+@Mock([Frame, Game])
 class LastFrameSpec extends Specification {
 
     def setup() {
@@ -58,13 +58,17 @@ class LastFrameSpec extends Specification {
         frame.validate()
     }
 
-    void "test get service"(){
-        when:"frame is instance of LastFrame class"
-        def game = new Game()
-        def frame = new LastFrame(game: game, frameNumber: 10, firstRoll: 10)
-        def service = frame.getService()
+    void "test is new frame needed for last frame"() {
+        when:
+        def frame = new LastFrame(frameNumber: 10, firstRoll: firstRoll, secondRoll: secondRoll, bonusRoll: bonusRoll)
 
-        then:"service is instance of LastFrameService class"
-        service && service instanceof LastFrameService
+        then:
+        expected == frame.isNewFrameNeeded()
+
+        where:
+        firstRoll | secondRoll | bonusRoll | expected
+        10        | null       | null       | false
+        10        | 10         | null       | false
+        3         | 3          | 7          | false
     }
 }
